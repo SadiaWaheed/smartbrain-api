@@ -73,14 +73,10 @@ app.post("/register", (req, res) => {
       name: name,
       joined: new Date(),
     })
-    .then(response => {
+    .then(user => {
       res.json(user[0]);
     })
     .catch(err => res.status(400).json('unable to register.'));
-
-  bcrypt.hash(password, null, null, function (err, hash) {
-    console.log(hash);
-  });
 });
 
 app.get("/profile/:id", (req, res) => {
