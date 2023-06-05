@@ -53,16 +53,29 @@ app.get("/", (req, res) => {
 
 //SIGNIN
 app.post("/signin", (req, res) => {
-  if (
-    req.body.email === database.users[0].email &&
-    req.body.password === database.users[0].password
-  ) {
-    res.json(database.users[0]);
-  } else {
-    res.status(400).json("error logging in");
-  }
+  db.select("email", "hash")
+    .where("email", "=", req.body.email)
+    .from("login")
+    .then((data) => {
+      const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
+      if (isValid) {
+        return db
+          .select("*")
+          .from("users")
+          .where("email", "=", req.body.email)
+          .then((user) => {
+            res.json(user[0]);
+          })
+          .catch((err) => res.status(400).json("unable to get user"));
+      }
+      else{
+        res.status(400).json('wrong credentials')
+      }
+    })
+    .catch((err) => res.status(400).json("wrong credentials"));
 });
 
+//REGISTER
 app.post("/register", (req, res) => {
   const { email, name, password } = req.body;
 
@@ -74,11 +87,11 @@ app.post("/register", (req, res) => {
         hash: hash,
         email: email,
       })
-      .into('login')
-      .returning('email')
+      .into("login")
+      .returning("email")
       .then((loginEmail) => {
-        return trx('users')
-          .returning('*')
+        return trx("users")
+          .returning("*")
           .insert({
             email: loginEmail[0].email,
             name: name,
@@ -86,12 +99,11 @@ app.post("/register", (req, res) => {
           })
           .then((user) => {
             res.json(user[0]);
-          })
+          });
       })
       .then(trx.commit)
       .catch(trx.rollback);
-  })
-  .catch((err) => res.status(400).json("unable to register."));
+  }).catch((err) => res.status(400).json("unable to register."));
 });
 
 app.get("/profile/:id", (req, res) => {
@@ -120,14 +132,6 @@ app.put("/image", (req, res) => {
     })
     .catch((err) => res.status(400).json("unable to get entries"));
 });
-
-// Load hash from your password DB.
-/* bcrypt.compare("bacon", hash, function (err, res) {
-  // res == true
-});
-bcrypt.compare("veggies", hash, function (err, res) {
-  // res = false
-}); */
 
 app.listen(3000, () => {
   console.log("app is running on port 3000");
