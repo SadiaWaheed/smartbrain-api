@@ -1,4 +1,4 @@
-const { response } = require("express");
+const fetch = require("node-fetch");
 
 const returnClarifaiRequestOptions = (imageUrl) => {
   // Your PAT (Personal Access Token) can be found in the portal under Authentification
