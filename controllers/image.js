@@ -60,7 +60,8 @@ const handleImage = (req, res, db) => {
     .then((entries) => {
       console.log("handleImage")
       console.log(entries)
-      res.json(entries[0].entries);
+      // res.json(entries[0].entries);
+      res.json(entries);
     })
     .catch((err) => res.status(400).json("unable to get entries"));
 };
